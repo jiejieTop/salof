@@ -95,9 +95,9 @@ unsigned int fifo_write(fifo_t fifo, void *buff, unsigned int len, unsigned int 
     if(err == -1)
         return 0;
 
-    len = SALOF_MIN(len, (fifo->size - fifo->in + fifo->out));
+    len = FIFO_MIN(len, (fifo->size - fifo->in + fifo->out));
 
-    l = SALOF_MIN(len, (fifo->size - (fifo->in & (fifo->size -1))));
+    l = FIFO_MIN(len, (fifo->size - (fifo->in & (fifo->size -1))));
     memcpy(((unsigned char *)fifo->buff + (fifo->in & (fifo->size -1))), buff, l);
     memcpy(fifo->buff, (unsigned char *)buff + l, len - l);
 
@@ -119,9 +119,9 @@ unsigned int fifo_read(fifo_t fifo, void *buff, unsigned int len, unsigned int t
     if(err == -1)
         return 0;
 
-    len = SALOF_MIN(len, fifo->in - fifo->out);
+    len = FIFO_MIN(len, fifo->in - fifo->out);
 
-    l = SALOF_MIN(len, (fifo->size - (fifo->out & (fifo->size -1))));
+    l = FIFO_MIN(len, (fifo->size - (fifo->out & (fifo->size -1))));
     memcpy(buff, ((unsigned char *)fifo->buff + (fifo->out & (fifo->size -1))), l);
     memcpy((unsigned char *)buff + l, fifo->buff, len - l);
 

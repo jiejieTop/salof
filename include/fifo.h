@@ -6,6 +6,21 @@
 #define			FIFO_READ		0
 #define			FIFO_WRITE		1
 
+#define 		FIFO_MAX(a,b) (((a) > (b)) ? (a) : (b))
+#define 		FIFO_MIN(a,b) (((a) < (b)) ? (a) : (b))
+
+// #define	FIFO_MAX(x,y) 	({		\
+// 	const typeof(x) _x	= (x);	\
+// 	const typeof(y) _y	= (y);	\
+// 	(void) (&_x == &_y)	;		\
+// 	_x > _y ? _x : _y;	})
+
+// #define	FIFO_MIN(x,y) 	({		\
+// 	const typeof(x) _x	= (x);	\
+// 	const typeof(y) _y	= (y);	\
+// 	(void) (&_x == &_y)	;		\
+// 	_x < _y ? _x : _y;	})
+
 struct fifo
 {
 	unsigned int    size;       /* fifo size */

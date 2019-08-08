@@ -16,7 +16,7 @@
         <TargetCommonOption>
           <Device>STM32F103ZE</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F1xx_DFP.2.2.0</PackID>
+          <PackID>Keil.STM32F1xx_DFP.2.3.0</PackID>
           <PackURL>http://www.keil.com/pack/</PackURL>
           <Cpu>IROM(0x08000000,0x80000) IRAM(0x20000000,0x10000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -335,7 +335,7 @@
             <v6WtE>0</v6WtE>
             <v6Rtti>0</v6Rtti>
             <VariousControls>
-              <MiscControls></MiscControls>
+              <MiscControls>--c99</MiscControls>
               <Define>STM32F10X_HD, USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
               <IncludePath>..\..\Libraries\CMSIS;..\..\User;..\..\Libraries\FWlib\inc;..\..\FreeRTOS\include;..\..\FreeRTOS\port\RVDS\ARM_CM3;..\..\User\bsp\led;..\..\User\bsp\usart;..\..\User\bsp\Key;..\..\..\include</IncludePath>

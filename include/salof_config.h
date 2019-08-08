@@ -7,8 +7,6 @@
 #define salof_mutex SemaphoreHandle_t
 #define salof_tcb   TaskHandle_t
 
-#define SALOF_MAX(a,b) (((a) > (b)) ? (a) : (b))
-#define SALOF_MIN(a,b) (((a) < (b)) ? (a) : (b))
 
 #define         DOS_ALIGN_SIZE                  (4U)
 
