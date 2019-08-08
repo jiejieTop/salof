@@ -200,7 +200,7 @@
  * 使用空闲钩子函数设置CPU进入省电模式是很常见的
  * 不可以调用会引起空闲任务阻塞的API函数
  */
-#define configUSE_IDLE_HOOK						0      
+#define configUSE_IDLE_HOOK						1      
 
 /* 置1：使用时间片钩子（Tick Hook）；置0：忽略时间片钩子
  * 

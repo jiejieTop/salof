@@ -157,7 +157,7 @@ static void LED_Task(void* parameter)
     LED1_ON;
 //    printf("LED_Task Running,LED1_ON\r\n");
       
-    DOS_LOG_ERR("abc\n");
+    LOG_ERR("abc\n");
       
     vTaskDelay(500);   /* ÑÓÊ±500¸ötick */
     
