@@ -35,7 +35,9 @@
     #include "semphr.h"
     #define salof_mutex SemaphoreHandle_t
     #define salof_tcb   TaskHandle_t
+#if USE_IDLE_HOOK
     #define salof_handler   vApplicationIdleHook
+#endif  
     #define SALOF_TASK_PRIO (0U)
 #elif (SALOF_OS == USE_RTT)
 
