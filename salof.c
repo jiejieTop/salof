@@ -12,22 +12,27 @@
     #define     SALOF_FIFO_SIZE     (2048U)
 #endif 
 
+static int salof_out(char *buf, int len);
+
 #if USE_SALOF
 #include <string.h>
 static fifo_t _salof_fifo = NULL;
 static int _len;
-
-#endif
-static char _format_buff[SALOF_BUFF_SIZE];
 static char _out_buff[SALOF_BUFF_SIZE];
 
 #if !USE_IDLE_HOOK
 static salof_tcb _salof_task;
 void salof_task(void *parm);
 #else
-#define salof_handler   vApplicationIdleHook
+
+#if !defined(salof_handler)
+    #error "salof_handler need to be defined as your hook function"
+#endif
 
 #endif
+#endif
+
+static char _format_buff[SALOF_BUFF_SIZE];
 
 int salof_init(void)
 {
@@ -35,12 +40,12 @@ int salof_init(void)
     _salof_fifo = fifo_create(SALOF_FIFO_SIZE);
     if(_salof_fifo == NULL)
         return -1;
-#endif
-    
+
 #if !USE_IDLE_HOOK
-    _salof_task = salof_task_create("salof_task", salof_task, NULL, 1024, 1, 20);
+    _salof_task = salof_task_create("salof_task", salof_task, NULL, SALOF_TASK_STACK_SIZE, SALOF_TASK_PRIO, SALOF_TASK_TICK);
     if(_salof_task == NULL)
         return -1;
+#endif
 #endif
     return 0;
 }
@@ -66,12 +71,12 @@ void salof(const char *fmt, ...)
   va_end(args);
 }
 
-int salof_out(char *buf, int len)
+static int salof_out(char *buf, int len)
 {
     return send_buff(buf, len);
 }
 
-
+#if USE_SALOF
 void salof_handler( void )
 {
     _len = fifo_read(_salof_fifo, _out_buff, sizeof(_out_buff), 0);
@@ -81,6 +86,7 @@ void salof_handler( void )
         memset(_out_buff, 0, _len);
     }
 }
+#endif
 
 #if !USE_IDLE_HOOK
 void salof_task(void *parm)

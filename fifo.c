@@ -59,12 +59,12 @@ fifo_t fifo_create(unsigned int size)
     {
         fifo->buff = (unsigned char *)fifo + sizeof(struct fifo);
 
-        fifo->mutex[FIFO_READ] = salof_mutex_create();
-        if(NULL == fifo->mutex[FIFO_READ])
-        {
-            salof_free(fifo);  
-            return NULL;
-        }
+//        fifo->mutex[FIFO_READ] = salof_mutex_create();
+//        if(NULL == fifo->mutex[FIFO_READ])
+//        {
+//            salof_free(fifo);  
+//            return NULL;
+//        }
 
         fifo->mutex[FIFO_WRITE] = salof_mutex_create();
         if(NULL == fifo->mutex[FIFO_WRITE])
@@ -110,14 +110,16 @@ unsigned int fifo_write(fifo_t fifo, void *buff, unsigned int len, unsigned int 
 
 unsigned int fifo_read(fifo_t fifo, void *buff, unsigned int len, unsigned int timeout)
 {
-    int err, l;
-
+    
+//    int err;
+    int l;
+    
     if((!fifo) || (!buff) || (!len))
         return 0;
 
-    err = salof_mutex_pend(fifo->mutex[FIFO_READ], timeout);
-    if(err == -1)
-        return 0;
+//    err = salof_mutex_pend(fifo->mutex[FIFO_READ], timeout);
+//    if(err == -1)
+//        return 0;
 
     len = FIFO_MIN(len, fifo->in - fifo->out);
 
@@ -127,7 +129,7 @@ unsigned int fifo_read(fifo_t fifo, void *buff, unsigned int len, unsigned int t
 
     fifo->out += len;
 
-    salof_mutex_post(fifo->mutex[FIFO_READ]);
+//    salof_mutex_post(fifo->mutex[FIFO_READ]);
 
     return len;
 }

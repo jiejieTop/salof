@@ -3,11 +3,9 @@
 
 #include <salof_config.h>
 
-extern int send_buff(char *buf, int len);
-
 int salof_init(void);
 void salof(const char *fmt, ...);
-int salof_out(char *buf, int len);
+
 
 #define     FC_BLACK    30       /** font color */
 #define     FC_RED      31
