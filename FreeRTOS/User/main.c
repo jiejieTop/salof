@@ -123,7 +123,7 @@ static void AppTaskCreate(void)
                         (const char*    )"LED_Task",/* 任务名字 */
                         (uint16_t       )512,   /* 任务栈大小 */
                         (void*          )NULL,	/* 任务入口函数参数 */
-                        (UBaseType_t    )2,	    /* 任务的优先级 */
+                        (UBaseType_t    )3,	    /* 任务的优先级 */
                         (TaskHandle_t*  )&LED_Task_Handle);/* 任务控制块指针 */
   if(pdPASS == xReturn)
     printf("创建LED_Task任务成功!\r\n");
@@ -177,19 +177,16 @@ static void KEY_Task(void* parameter)
 {	
   while (1)
   {
-//    if( Key_Scan(KEY1_GPIO_PORT,KEY1_GPIO_PIN) == KEY_ON )
-//    {/* K1 被按下 */
-//      printf("挂起LED任务！\n");
-//      vTaskSuspend(LED_Task_Handle);/* 挂起LED任务 */
-//      printf("挂起LED任务成功！\n");
-//    } 
-//    if( Key_Scan(KEY2_GPIO_PORT,KEY2_GPIO_PIN) == KEY_ON )
-//    {/* K2 被按下 */
-//      printf("恢复LED任务！\n");
-//      vTaskResume(LED_Task_Handle);/* 恢复LED任务！ */
-//      printf("恢复LED任务成功！\n");
-//    }
-    vTaskDelay(20);/* 延时20个tick */
+    LED2_ON;
+//    printf("LED_Task Running,LED1_ON\r\n");
+      
+    LOG_ERR("123\n");
+      
+    vTaskDelay(500);   /* 延时500个tick */
+    
+    LED2_OFF;     
+//    printf("LED_Task Running,LED1_OFF\r\n");
+    vTaskDelay(500);   /* 延时500个tick */
   }
 }
 
