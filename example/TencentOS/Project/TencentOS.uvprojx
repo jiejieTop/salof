@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>Target 1</TargetName>
+      <TargetName>salof</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
@@ -1084,6 +1084,21 @@
               <FileName>salof.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\salof.c</FilePath>
+            </File>
+            <File>
+              <FileName>fifo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\include\fifo.h</FilePath>
+            </File>
+            <File>
+              <FileName>format.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\include\format.h</FilePath>
+            </File>
+            <File>
+              <FileName>salof.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\include\salof.h</FilePath>
             </File>
           </Files>
         </Group>

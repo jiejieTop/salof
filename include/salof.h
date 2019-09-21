@@ -6,8 +6,8 @@
 int salof_init(void);
 void salof(const char *fmt, ...);
 
-
-#define     FC_BLACK    30       /** font color */
+/** font color */
+#define     FC_BLACK    30       
 #define     FC_RED      31
 #define     FC_GREEN    32
 #define     FC_YELLOW   33
