@@ -1,4 +1,11 @@
-#include <format.h>
+/*
+ * @Author: jiejie
+ * @Github: https://github.com/jiejieTop
+ * @Date: 2019-12-25 23:54:19
+ * @LastEditTime : 2019-12-28 01:53:41
+ * @Description: the code belongs to jiejie, please keep the author information and source code according to the license.
+ */
+#include "format.h"
 
 
 static int _get_atoi(const char **str)
@@ -241,7 +248,7 @@ int format_nstr(char *buf, unsigned int size, const char *fmt, va_list ap)
                 }
                 _format_int(buf, &n, size, num, base, width, flags);
             } else if (c == 'p') {
-                num = (int) va_arg(ap, void *);
+                num = (size_t) va_arg(ap, void *);
                 base = 16;
                 flags |= F_SMALL | F_ALTERNATE;
                 _format_int(buf, &n, size, num, base, width, flags);
@@ -272,10 +279,3 @@ int format_nstr(char *buf, unsigned int size, const char *fmt, va_list ap)
 
     return n;
 }
-
-
-
-
-
-
-
