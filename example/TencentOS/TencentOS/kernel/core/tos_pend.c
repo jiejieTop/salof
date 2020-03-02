@@ -1,34 +1,53 @@
-#include "tos.h"
+/*----------------------------------------------------------------------------
+ * Tencent is pleased to support the open source community by making TencentOS
+ * available.
+ *
+ * Copyright (C) 2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * If you have downloaded a copy of the TencentOS binary from Tencent, please
+ * note that the TencentOS binary is licensed under the BSD 3-Clause License.
+ *
+ * If you have downloaded a copy of the TencentOS source code from Tencent,
+ * please note that TencentOS source code is licensed under the BSD 3-Clause
+ * License, except for the third-party components listed below which are
+ * subject to different license terms. Your integration of TencentOS into your
+ * own projects may require compliance with the BSD 3-Clause License, as well
+ * as the other licenses applicable to the third-party components included
+ * within TencentOS.
+ *---------------------------------------------------------------------------*/
+
+#include "tos_k.h"
 
 __STATIC__ void pend_list_add(k_task_t *task, pend_obj_t *pend_obj)
 {
-    k_list_t *curr, *pend_list;
     k_task_t *iter;
 
-    pend_list = &pend_obj->list;
     /* keep priority in descending order, the boss(task with highest priority,
        numerically smallest) always comes first
     */
-    TOS_LIST_FOR_EACH(curr, pend_list) {
-        iter = TOS_LIST_ENTRY(curr, k_task_t, pend_list);
+    TOS_LIST_FOR_EACH_ENTRY(iter, k_task_t, pend_list, &pend_obj->list) {
         if (task->prio < iter->prio) {
             break;
         }
     }
-    tos_list_add_tail(&task->pend_list, curr);
+    tos_list_add_tail(&task->pend_list, &iter->pend_list);
 
     // remember me, you may use me someday
     task->pending_obj = pend_obj;
     task_state_set_pend(task);
 }
 
-__KERNEL__ k_prio_t pend_highest_prio_get(pend_obj_t *object)
+__KERNEL__ k_prio_t pend_highest_pending_prio_get(pend_obj_t *object)
 {
     k_task_t *task;
 
     // we keep the task priority in descending order, so the first one is just fine.
     task = TOS_LIST_FIRST_ENTRY_OR_NULL(&object->list, k_task_t, pend_list);
     return task ? task->prio : K_TASK_PRIO_INVALID;
+}
+
+__KERNEL__ k_task_t *pend_highest_pending_task_get(pend_obj_t *object)
+{
+    return TOS_LIST_FIRST_ENTRY(&object->list, k_task_t, pend_list);
 }
 
 __KERNEL__ void pend_list_remove(k_task_t *task)
@@ -39,15 +58,13 @@ __KERNEL__ void pend_list_remove(k_task_t *task)
     task_state_reset_pending(task);
 }
 
-__KERNEL__ void pend_object_init(pend_obj_t *object, pend_type_t type)
+__KERNEL__ void pend_object_init(pend_obj_t *object)
 {
-    object->type = type;
     tos_list_init(&object->list);
 }
 
 __KERNEL__ void pend_object_deinit(pend_obj_t *object)
 {
-    object->type = PEND_TYPE_NONE;
     tos_list_init(&object->list);
 }
 
@@ -62,11 +79,6 @@ __KERNEL__ void pend_list_adjust(k_task_t *task)
     tos_list_del(&task->pend_list);
     // the "someday" comes
     pend_list_add(task, task->pending_obj);
-}
-
-__KERNEL__ int pend_object_verify(pend_obj_t *object, pend_type_t type)
-{
-    return object->type == type;
 }
 
 __KERNEL__ k_err_t pend_state2errno(pend_state_t state)
@@ -106,6 +118,8 @@ __KERNEL__ void pend_task_wakeup(k_task_t *task, pend_state_t state)
 __KERNEL__ void pend_task_block(k_task_t *task, pend_obj_t *object, k_tick_t timeout)
 {
     readyqueue_remove(task);
+
+    task->pend_state = PEND_STATE_NONE;
     pend_list_add(task, object);
 
     if (timeout != TOS_TIME_FOREVER) {
@@ -120,10 +134,10 @@ __KERNEL__ void pend_wakeup_one(pend_obj_t *object, pend_state_t state)
 
 __KERNEL__ void pend_wakeup_all(pend_obj_t *object, pend_state_t state)
 {
-    k_list_t *curr, *next;
+    k_task_t *task, *tmp;
 
-    TOS_LIST_FOR_EACH_SAFE(curr, next, &object->list) {
-        pend_task_wakeup(TOS_LIST_ENTRY(curr, k_task_t, pend_list), state);
+    TOS_LIST_FOR_EACH_ENTRY_SAFE(task, tmp, k_task_t, pend_list, &object->list) {
+        pend_task_wakeup(task, state);
     }
 }
 

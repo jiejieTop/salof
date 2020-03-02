@@ -1,9 +1,25 @@
-#include <tos.h>
+/*----------------------------------------------------------------------------
+ * Tencent is pleased to support the open source community by making TencentOS
+ * available.
+ *
+ * Copyright (C) 2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * If you have downloaded a copy of the TencentOS binary from Tencent, please
+ * note that the TencentOS binary is licensed under the BSD 3-Clause License.
+ *
+ * If you have downloaded a copy of the TencentOS source code from Tencent,
+ * please note that TencentOS source code is licensed under the BSD 3-Clause
+ * License, except for the third-party components listed below which are
+ * subject to different license terms. Your integration of TencentOS into your
+ * own projects may require compliance with the BSD 3-Clause License, as well
+ * as the other licenses applicable to the third-party components included
+ * within TencentOS.
+ *---------------------------------------------------------------------------*/
+
+#include "tos_k.h"
 
 __STATIC__ void tick_task_place(k_task_t *task, k_tick_t timeout)
 {
     TOS_CPU_CPSR_ALLOC();
-    k_list_t *curr;
     k_task_t *curr_task = K_NULL;
     k_tick_t curr_expires, prev_expires = (k_tick_t)0u;
 
@@ -11,20 +27,23 @@ __STATIC__ void tick_task_place(k_task_t *task, k_tick_t timeout)
 
     task->tick_expires = timeout;
 
-    TOS_LIST_FOR_EACH(curr, &k_tick_list) {
-        curr_task = TOS_LIST_ENTRY(curr, k_task_t, tick_list);
+    TOS_LIST_FOR_EACH_ENTRY(curr_task, k_task_t, tick_list, &k_tick_list) {
         curr_expires = prev_expires + curr_task->tick_expires;
 
         if (task->tick_expires < curr_expires) {
             break;
         }
+        if (task->tick_expires == curr_expires &&
+            task->prio < curr_task->prio) {
+            break;
+        }
         prev_expires = curr_expires;
     }
     task->tick_expires -= prev_expires;
-    if (curr != &k_tick_list && curr_task) {
+    if (&curr_task->tick_list != &k_tick_list) {
         curr_task->tick_expires -= task->tick_expires;
     }
-    tos_list_add_tail(&task->tick_list, curr);
+    tos_list_add_tail(&task->tick_list, &curr_task->tick_list);
 
     TOS_CPU_INT_ENABLE();
 }
@@ -50,21 +69,10 @@ __STATIC__ void tick_task_takeoff(k_task_t *task)
     TOS_CPU_INT_ENABLE();
 }
 
-__KERNEL__ k_err_t tick_list_add(k_task_t *task, k_tick_t timeout)
+__KERNEL__ void tick_list_add(k_task_t *task, k_tick_t timeout)
 {
-    if (timeout == TOS_TIME_NOWAIT) {
-        return K_ERR_DELAY_ZERO;
-    }
-
-    if (timeout == TOS_TIME_FOREVER) {
-        return K_ERR_DELAY_FOREVER;
-    }
-
-    task->tick_expires = timeout;
-
     tick_task_place(task, timeout);
     task_state_set_sleeping(task);
-    return K_ERR_NONE;
 }
 
 __KERNEL__ void tick_list_remove(k_task_t *task)
@@ -76,8 +84,7 @@ __KERNEL__ void tick_list_remove(k_task_t *task)
 __KERNEL__ void tick_update(k_tick_t tick)
 {
     TOS_CPU_CPSR_ALLOC();
-    k_task_t *first, *task;
-    k_list_t *curr, *next;
+    k_task_t *first, *task, *tmp;
 
     TOS_CPU_INT_DISABLE();
     k_tick_count += tick;
@@ -96,8 +103,7 @@ __KERNEL__ void tick_update(k_tick_t tick)
         return;
     }
 
-    TOS_LIST_FOR_EACH_SAFE(curr, next, &k_tick_list) {
-        task = TOS_LIST_ENTRY(curr, k_task_t, tick_list);
+    TOS_LIST_FOR_EACH_ENTRY_SAFE(task, tmp, k_task_t, tick_list, &k_tick_list) {
         if (task->tick_expires > (k_tick_t)0u) {
             break;
         }

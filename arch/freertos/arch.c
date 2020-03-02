@@ -2,11 +2,12 @@
  * @Author: jiejie
  * @Github: https://github.com/jiejieTop
  * @Date: 2019-12-26 19:11:40
- * @LastEditTime : 2019-12-27 23:19:40
+ * @LastEditTime : 2019-12-28 01:15:29
  * @Description: the code belongs to jiejie, please keep the author information and source code according to the license.
  */
-#include "config.h"
+#include "salof_defconfig.h"
 
+#if USE_LOG
 
 void *salof_alloc(unsigned int size)
 {
@@ -94,3 +95,4 @@ char *salof_get_task_name(void)
     return pcTaskGetName(xTaskGetCurrentTaskHandle());
 }
 
+#endif

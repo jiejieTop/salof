@@ -2,14 +2,12 @@
  * @Author: jiejie
  * @Github: https://github.com/jiejieTop
  * @Date: 2019-12-26 19:11:37
- * @LastEditTime : 2019-12-27 12:34:09
+ * @LastEditTime: 2020-02-25 04:01:18
  * @Description: the code belongs to jiejie, please keep the author information and source code according to the license.
  */
-#include "config.h"
-#include <stdlib.h>
-#include "pthread.h"
-#include "memory.h"
-#include <stdio.h>
+#include "salof_defconfig.h"
+
+#if USE_LOG
 
 void *salof_alloc(unsigned int size)
 {
@@ -74,7 +72,7 @@ int salof_mutex_post(salof_mutex mutex)
 salof_sem salof_sem_create(void)
 {
     salof_sem sem;
-    sem = salof_alloc(sizeof(pthread_mutex_t));
+    sem = salof_alloc(sizeof(sem_t));
     
     if (NULL != sem)
 	    sem_init(sem, 0, 0);
@@ -116,4 +114,4 @@ int send_buff(char *buf, int len)
     return len;
 }
 
-
+#endif

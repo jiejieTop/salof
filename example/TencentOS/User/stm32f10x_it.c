@@ -26,7 +26,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
 #include "bsp_usart.h"
-#include "tos.h"
+#include "tos_k.h"
 /** @addtogroup STM32F10x_StdPeriph_Template
   * @{
   */

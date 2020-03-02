@@ -1,8 +1,25 @@
+/*----------------------------------------------------------------------------
+ * Tencent is pleased to support the open source community by making TencentOS
+ * available.
+ *
+ * Copyright (C) 2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * If you have downloaded a copy of the TencentOS binary from Tencent, please
+ * note that the TencentOS binary is licensed under the BSD 3-Clause License.
+ *
+ * If you have downloaded a copy of the TencentOS source code from Tencent,
+ * please note that TencentOS source code is licensed under the BSD 3-Clause
+ * License, except for the third-party components listed below which are
+ * subject to different license terms. Your integration of TencentOS into your
+ * own projects may require compliance with the BSD 3-Clause License, as well
+ * as the other licenses applicable to the third-party components included
+ * within TencentOS.
+ *---------------------------------------------------------------------------*/
+
 /*
  * The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2016-2018 Armink (armink.ztl@gmail.com)
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
  * 'Software'), to deal in the Software without restriction, including
@@ -10,10 +27,10 @@
  * distribute, sublicense, and/or sell copies of the Software, and to
  * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -23,7 +40,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "tos.h"
+#include "tos_k.h"
 #include "core_cm7.h"
 
 __PORT__ void port_cpu_reset(void)
@@ -63,6 +80,11 @@ __PORT__ void port_systick_suspend(void)
 {
     SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
     SysTick->CTRL &= ~SysTick_CTRL_TICKINT_Msk;
+}
+
+__PORT__ k_cycle_t port_systick_max_reload_cycle(void)
+{
+    return SysTick_LOAD_RELOAD_Msk;
 }
 
 __PORT__ void port_systick_reload(uint32_t cycle_per_tick)

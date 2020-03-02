@@ -1,24 +1,39 @@
-#include <tos.h>
+/*----------------------------------------------------------------------------
+ * Tencent is pleased to support the open source community by making TencentOS
+ * available.
+ *
+ * Copyright (C) 2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * If you have downloaded a copy of the TencentOS binary from Tencent, please
+ * note that the TencentOS binary is licensed under the BSD 3-Clause License.
+ *
+ * If you have downloaded a copy of the TencentOS source code from Tencent,
+ * please note that TencentOS source code is licensed under the BSD 3-Clause
+ * License, except for the third-party components listed below which are
+ * subject to different license terms. Your integration of TencentOS into your
+ * own projects may require compliance with the BSD 3-Clause License, as well
+ * as the other licenses applicable to the third-party components included
+ * within TencentOS.
+ *---------------------------------------------------------------------------*/
+
+#include "tos_k.h"
 
 #if TOS_CFG_TIMER_EN > 0u
 
 __STATIC__ void timer_place(k_timer_t *tmr)
 {
     TOS_CPU_CPSR_ALLOC();
-    k_list_t *curr;
     k_timer_t *iter = K_NULL;
 
     TOS_CPU_INT_DISABLE();
 
     tmr->expires += k_tick_count;
 
-    TOS_LIST_FOR_EACH(curr, &k_timer_ctl.list) {
-        iter = TOS_LIST_ENTRY(curr, k_timer_t, list);
+    TOS_LIST_FOR_EACH_ENTRY(iter, k_timer_t, list, &k_timer_ctl.list) {
         if (tmr->expires < iter->expires) {
             break;
         }
     }
-    tos_list_add_tail(&tmr->list, curr);
+    tos_list_add_tail(&tmr->list, &iter->list);
 
     if (k_timer_ctl.list.next == &tmr->list) {
         // we are the first guy now
@@ -96,6 +111,7 @@ __API__ k_err_t tos_timer_create(k_timer_t *tmr,
     }
 
     if (opt == TOS_OPT_TIMER_ONESHOT && delay == (k_tick_t)0u) {
+        // if you create a oneshot timer and delay 0 to trigger, why don't just call the timer_callback?
         return K_ERR_TIMER_INVALID_DELAY;
     }
 
@@ -129,12 +145,7 @@ __API__ k_err_t tos_timer_create(k_timer_t *tmr,
 __API__ k_err_t tos_timer_destroy(k_timer_t *tmr)
 {
     TOS_PTR_SANITY_CHECK(tmr);
-
-#if TOS_CFG_OBJECT_VERIFY_EN > 0u
-    if (!knl_object_verify(&tmr->knl_obj, KNL_OBJ_TYPE_TIMER)) {
-        return K_ERR_OBJ_INVALID;
-    }
-#endif
+    TOS_OBJ_VERIFY(tmr, KNL_OBJ_TYPE_TIMER);
 
     if (tmr->state == TIMER_STATE_UNUSED) {
         return K_ERR_TIMER_INACTIVE;
@@ -151,12 +162,7 @@ __API__ k_err_t tos_timer_destroy(k_timer_t *tmr)
 __API__ k_err_t tos_timer_start(k_timer_t *tmr)
 {
     TOS_PTR_SANITY_CHECK(tmr);
-
-#if TOS_CFG_OBJECT_VERIFY_EN > 0u
-    if (!knl_object_verify(&tmr->knl_obj, KNL_OBJ_TYPE_TIMER)) {
-        return K_ERR_OBJ_INVALID;
-    }
-#endif
+    TOS_OBJ_VERIFY(tmr, KNL_OBJ_TYPE_TIMER);
 
     if (tmr->state == TIMER_STATE_UNUSED) {
         return K_ERR_TIMER_INACTIVE;
@@ -187,12 +193,7 @@ __API__ k_err_t tos_timer_start(k_timer_t *tmr)
 __API__ k_err_t tos_timer_stop(k_timer_t *tmr)
 {
     TOS_PTR_SANITY_CHECK(tmr);
-
-#if TOS_CFG_OBJECT_VERIFY_EN > 0u
-    if (!knl_object_verify(&tmr->knl_obj, KNL_OBJ_TYPE_TIMER)) {
-        return K_ERR_OBJ_INVALID;
-    }
-#endif
+    TOS_OBJ_VERIFY(tmr, KNL_OBJ_TYPE_TIMER);
 
     if (tmr->state == TIMER_STATE_UNUSED) {
         return K_ERR_TIMER_INACTIVE;
@@ -209,6 +210,50 @@ __API__ k_err_t tos_timer_stop(k_timer_t *tmr)
     }
 
     return K_ERR_NONE;
+}
+
+__STATIC__ k_err_t timer_change(k_timer_t *tmr, k_tick_t new_val, timer_change_type_t change_type)
+{
+    TOS_PTR_SANITY_CHECK(tmr);
+    TOS_OBJ_VERIFY(tmr, KNL_OBJ_TYPE_TIMER);
+
+    if (tmr->state == TIMER_STATE_UNUSED) {
+        return K_ERR_TIMER_INACTIVE;
+    }
+
+    if (tmr->state == TIMER_STATE_RUNNING) {
+        return K_ERR_TIMER_RUNNING;
+    }
+
+    if (tmr->opt == TOS_OPT_TIMER_ONESHOT &&
+        change_type == TIMER_CHANGE_TYPE_DELAY &&
+        new_val == (k_tick_t)0u) {
+        return K_ERR_TIMER_INVALID_DELAY;
+    }
+
+    if (tmr->opt == TOS_OPT_TIMER_PERIODIC &&
+        change_type == TIMER_CHANGE_TYPE_PERIOD &&
+        new_val == (k_tick_t)0u) {
+        return K_ERR_TIMER_INVALID_PERIOD;
+    }
+
+    if (change_type == TIMER_CHANGE_TYPE_DELAY) {
+        tmr->delay  = new_val;
+    } else {
+        tmr->period = new_val;
+    }
+
+    return K_ERR_NONE;
+}
+
+__API__ k_err_t tos_timer_delay_change(k_timer_t *tmr, k_tick_t delay)
+{
+    return timer_change(tmr, delay, TIMER_CHANGE_TYPE_DELAY);
+}
+
+__API__ k_err_t tos_timer_period_change(k_timer_t *tmr, k_tick_t period)
+{
+    return timer_change(tmr, period, TIMER_CHANGE_TYPE_PERIOD);
 }
 
 __KERNEL__ k_tick_t timer_next_expires_get(void)
@@ -234,8 +279,7 @@ __KERNEL__ k_tick_t timer_next_expires_get(void)
 
 __KERNEL__ void timer_update(void)
 {
-    k_timer_t *tmr;
-    k_list_t *curr, *next;
+    k_timer_t *tmr, *tmp;
 
     if (k_timer_ctl.next_expires < k_tick_count) {
         return;
@@ -243,8 +287,7 @@ __KERNEL__ void timer_update(void)
 
     tos_knl_sched_lock();
 
-    TOS_LIST_FOR_EACH_SAFE(curr, next, &k_timer_ctl.list) {
-        tmr = TOS_LIST_ENTRY(curr, k_timer_t, list);
+    TOS_LIST_FOR_EACH_ENTRY_SAFE(tmr, tmp, k_timer_t, list, &k_timer_ctl.list) {
         if (tmr->expires > k_tick_count) {
             break;
         }
@@ -269,8 +312,7 @@ __KERNEL__ void timer_update(void)
 
 __STATIC__ void timer_task_entry(void *arg)
 {
-    k_timer_t *tmr;
-    k_list_t *curr, *next;
+    k_timer_t *tmr, *tmp;
     k_tick_t next_expires;
 
     arg = arg; // make compiler happy
@@ -284,8 +326,7 @@ __STATIC__ void timer_task_entry(void *arg)
 
         tos_knl_sched_lock();
 
-        TOS_LIST_FOR_EACH_SAFE(curr, next, &k_timer_ctl.list) {
-            tmr = TOS_LIST_ENTRY(curr, k_timer_t, list);
+        TOS_LIST_FOR_EACH_ENTRY_SAFE(tmr, tmp, k_timer_t, list, &k_timer_ctl.list) {
             if (tmr->expires > k_tick_count) { // not yet
                 break;
             }

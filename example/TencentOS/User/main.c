@@ -1,6 +1,6 @@
 #include "stm32f10x.h"
 #include "bsp_usart.h"
-#include "tos.h"
+#include "tos_k.h"
 #include "salof.h"
 
 k_task_t task1;
@@ -42,8 +42,6 @@ int main(void)
     printf("Welcome to TencentOS tiny\r\n");
 
     tos_knl_init(); // TOS Tiny kernel initialize
-    
-    tos_robin_config(TOS_ROBIN_STATE_ENABLED, (k_timeslice_t)500u);
     
     salof_init();
     
